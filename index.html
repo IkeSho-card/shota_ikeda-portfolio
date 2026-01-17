@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Shota Ikeda | Academic Portfolio</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@300;400;500;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['"Outfit"', '"M PLUS Rounded 1c"', 'sans-serif'],
+              display: ['"Outfit"', '"M PLUS Rounded 1c"', 'sans-serif'],
+            },
+            colors: {
+              'ud-bg': '#FDFCF8', // Warm Ivory White
+              'ud-white': '#FFFFFF',
+              'ud-text': '#475569', // Slate 600 - Soft Text
+              'ud-heading': '#1E293B', // Slate 800 - Strong Text
+              'ud-blue': '#60A5FA', // Pastel Blue
+              'ud-blue-light': '#EFF6FF',
+              'ud-orange': '#FB923C', // Pastel Orange
+              'ud-orange-light': '#FFF7ED',
+              'ud-green': '#34D399', // Pastel Green
+              'ud-green-light': '#ECFDF5',
+              'ud-border': '#E2E8F0',
+            },
+            animation: {
+              'float': 'float 6s ease-in-out infinite',
+              'float-delayed': 'float 6s ease-in-out 3s infinite',
+              'bounce-gentle': 'bounceGentle 3s infinite',
+              'fade-in-up': 'fadeInUp 0.8s ease-out forwards',
+            },
+            keyframes: {
+              float: {
+                '0%, 100%': { transform: 'translateY(0)' },
+                '50%': { transform: 'translateY(-20px)' },
+              },
+              bounceGentle: {
+                '0%, 100%': { transform: 'translateY(-5%)', animationTimingFunction: 'cubic-bezier(0.8, 0, 1, 1)' },
+                '50%': { transform: 'translateY(0)', animationTimingFunction: 'cubic-bezier(0, 0, 0.2, 1)' },
+              },
+              fadeInUp: {
+                '0%': { opacity: '0', transform: 'translateY(20px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              }
+            }
+          },
+        },
+      }
+    </script>
+    <style>
+      body {
+        background-color: #FDFCF8;
+        color: #475569;
+        overflow-x: hidden;
+      }
+      
+      /* Smooth Scroll */
+      html {
+        scroll-behavior: smooth;
+      }
+
+      /* Custom Scrollbar - softer */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #FDFCF8;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #CBD5E1;
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #94A3B8;
+      }
+      
+      ::selection {
+        background: #60A5FA;
+        color: #fff;
+      }
+    </style>
+    
+    <script type="importmap">
+    {
+      "imports": {
+        "react": "https://esm.sh/react@18.2.0",
+        "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+        "lucide-react": "https://esm.sh/lucide-react@0.263.1",
+        "@google/genai": "https://esm.sh/@google/genai"
+      }
+    }
+    </script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel" data-type="module">
+      import React, { useState, useEffect, useRef } from 'react';
+      import { createRoot } from 'react-dom/client';
+      import { 
+        BookOpen, ArrowRight, Spade, Heart, Club, 
+        FileText, Calendar, GraduationCap, Tag, Filter,
+        Menu, X, ArrowLeft,
+        ExternalLink, Layers, Zap, Globe
+      } from 'lucide-react';
+
+      // --- Mock Environment ---
+      const process = {
+        env: {
+          API_KEY: '' 
+        }
+      };
+
+      // --- CONSTANTS ---
+      const SITE_CONFIG = {
+        name: "池田 昇太",
+        enName: "Shota Ikeda",
+        title: "Graduate Student (Master's Course)",
+        university: "Ibaraki University",
+        department: "Graduate School of Science and Engineering",
+        lab: "Shinagawa Lab / Yoneyama Lab",
+        labUrl: "https://sites.google.com/view/shinagawa-crypt-lab/home",
+        shortBio: "茨城大学大学院 理工学研究科 品川・米山研究室（暗号・情報セキュリティ研究室）。",
+        fullBio: `私は、茨城大学大学院理工学研究科（情報工学専攻）に在籍し、
+品川和雅助教（筑波大学）および米山一樹教授（茨城大学）の指導のもと、 
+暗号理論と情報セキュリティの研究を行っています。
+
+主な研究関心は「カードベース暗号」です。トランプのような
+物理的なカードを用いた暗号プロトコルの設計や、
+その理論的な安全性解析、および最小枚数構成に関する研究をしています。 
+数理的な厳密さと、直感的な分かりやすさを兼ね備えた、
+新しい暗号プリミティブの構築を目指しています。`,
+        profileImage: "https://placehold.co/400x400/e2e8f0/475569?text=Shota+Ikeda" 
+      };
+
+      const PUBLICATIONS = [
+        {
+          id: 'p1',
+          title: "カードベース暗号を用いたヒット＆ブローの遊び方",
+          authors: ["池田 昇太", "品川 和雅"],
+          conference: "第106回 CSEC研究発表会 (セキュリティサマーサミット2024)",
+          year: 2024,
+          category: "国内シンポジウム・研究会"
+        },
+        {
+          id: 'p2',
+          title: "Mizuki-Kumamoto-SoneのANDプロトコルの最適性",
+          authors: ["池田 昇太", "品川 和雅"],
+          conference: "コンピュータセキュリティシンポジウム 2024 (CSS 2024)",
+          year: 2024,
+          category: "国内シンポジウム・研究会"
+        },
+        {
+          id: 'p3',
+          title: "2n枚の部分的二重対称関数プロトコル",
+          authors: ["池田 昇太", "高橋 由紘", "品川 和雅"],
+          conference: "2025年暗号と情報セキュリティシンポジウム（SCIS2025)",
+          year: 2025,
+          category: "国内シンポジウム・研究会"
+        },
+        {
+          id: 'p4',
+          title: "ランダムカットのみの4枚XORプロトコルに対する形式検証と不可能性証明",
+          authors: ["藤田 和弘", "池田 昇太", "品川 和雅", "米山 一樹"],
+          conference: "2025年暗号と情報セキュリティシンポジウム（SCIS2025)",
+          year: 2025,
+          category: "国内シンポジウム・研究会"
+        },
+        {
+          id: 'p5',
+          title: "Formal Verification and Proof of Impossibility for Four-Card XOR Protocols Using Only Random Cuts",
+          authors: ["Kazuhiro Fujita", "Shota Ikeda", "Kazumasa Shinagawa", "Kazuki Yoneyama"],
+          conference: "ACM ASIA Public-Key Cryptography Workshop (APKC 2025)",
+          year: 2025,
+          category: "査読付き国際会議プロシーディング"
+        },
+        {
+          id: 'p6',
+          title: "Efficient Card-Based Protocols for Symmetric and Partially Doubly Symmetric Functions",
+          authors: ["Shota Ikeda", "Yoshihiro Takahashi", "Kazumasa Shinagawa", "Koji Nuida"],
+          conference: "The 20th International Workshop on Security (IWSEC 2025)",
+          year: 2025,
+          category: "査読付き国際会議プロシーディング"
+        },
+        {
+          id: 'p7',
+          title:  "How to Play Mastermind without Game Master",
+          authors: ["Shota Ikeda", "Kazumasa Shinagawa"],
+          conference: "Annual Conference on Theory and Applications of Models of Computation (TAMC 2025)",
+          year: 2025,
+          category: "査読付き国際会議プロシーディング"
+        },
+        {
+          id: 'p8',
+          title:  "Impossibility of Four-Card AND Protocols with a Single Closed Shuffle",
+          authors: ["Shizuru Iino", "Shota Ikeda", "Kazumasa Shinagawa", "Yang Li", "Kazuo Sakiyama" , "Daiki Miyahara"],
+          conference: "The International Conference on Cryptology and Network Security (CANS)",
+          year: 2025,
+          category: "査読付き国際会議プロシーディング"
+        },
+        {
+          id: 'p9',
+          title: "テントアンドツリーに対するカードベースゼロ知識証明",
+          authors: ["藤原 愛斗", "池田 昇太", "品川 和雅"],
+          conference: "コンピュータセキュリティシンポジウム (CSS 2025)",
+          year: 2025,
+          category: "国内シンポジウム・研究会"
+        },
+        {
+          id: 'p10',
+          title: "盗まれたネックレス問題に対するカードベースゼロ知識証明",
+          authors: ["池田 昇太", "品川 和雅"],
+          conference: "コンピュータセキュリティシンポジウム 2025 (CSS 2025)",
+          year: 2025,
+          category: "国内シンポジウム・研究会"
+        },
+        {
+          id: 'p11',
+          title: "nクイーン完成問題に対するカードベースゼロ知識証明",
+          authors: ["池田 昇太", "品川 和雅"],
+          conference: "コンピュータセキュリティシンポジウム 2025 (CSS 2025)",
+          year: 2025,
+          category: "国内シンポジウム・研究会"
+        },
+        {
+          id: 'p12',
+          title:  "ランダムカットのみを用いるカードベースプロトコルに対する計算機援用による不可能性証明",
+          authors: ["渡部 翔", "池田 昇太", "品川 和雅", "水木 敬明", "米山 一樹"],
+          conference: "コンピュータセキュリティシンポジウム 2025 (CSS 2025)",
+          year: 2025,
+          category: "国内シンポジウム・研究会"
+        },
+        {
+          id: 'p13',
+          title:  "部分開示操作を用いた追加カードなしの3変数関数プロトコル",
+          authors: ["本多 由昂", "池田 昇太", "品川 和雅"],
+          conference: "2026年暗号と情報セキュリティシンポジウム（SCIS2026)",
+          year: 2026,
+          category: "国内シンポジウム・研究会"
+        },
+        {
+          id: 'p14',
+          title:  "スターバトルに対するカードベースゼロ知識証明",
+          authors: ["池田 昇太", "本間 日綺", "品川 和雅"],
+          conference: "2026年暗号と情報セキュリティシンポジウム（SCIS2026)",
+          year: 2026,
+          category: "国内シンポジウム・研究会"
+        },
+        {
+          id: 'p15',
+          title:  "バトルシップに対するカードベースゼロ知識証明",
+          authors: ["本間 日綺", "池田 昇太", "品川 和雅"],
+          conference: "2026年暗号と情報セキュリティシンポジウム（SCIS2026)",
+          year: 2026,
+          category: "国内シンポジウム・研究会"
+        },
+        {
+          id: 'p16',
+          title:  "バッチング技術の多色カード組と上下回転を用いた効率化",
+          authors: ["石崎 悠斗", "品川 和雅", "池田 昇太"],
+          conference: "2026年暗号と情報セキュリティシンポジウム（SCIS2026)",
+          year: 2026,
+          category: "国内シンポジウム・研究会"
+        },
+      ];
+
+      const EXPERIENCES = [
+        {
+          id: 'e1',
+          role: "博士前期課程 (Master's Student)",
+          organization: "茨城大学大学院 理工学研究科",
+          period: "2025.04 - Present",
+          description: "暗号・情報セキュリティ研究室 (品川・米山研究室) 所属"
+        },
+        {
+          id: 'e2',
+          role: "学士 (Bachelor of Engineering)",
+          organization: "茨城大学 工学部 情報工学科",
+          period: "2021.04 - 2025.03",
+          description: "暗号・情報セキュリティ研究室 (品川研究室) 卒業"
+        }
+      ];
+
+      const RESEARCH_PROJECTS = []; // Added empty array to prevent undefined error in service
+
+      // --- COMPONENTS ---
+
+      // 1. Header
+      const Header = ({ currentPage, onNavigate }) => {
+        const [isScrolled, setIsScrolled] = useState(false);
+        const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+        useEffect(() => {
+          const handleScroll = () => {
+            setIsScrolled(window.scrollY > 20);
+          };
+          window.addEventListener('scroll', handleScroll);
+          return () => window.removeEventListener('scroll', handleScroll);
+        }, []);
+
+        const handleNavClick = (page, e) => {
+          e.preventDefault();
+          onNavigate(page);
+          setIsMenuOpen(false);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        const isHome = currentPage === 'home';
+
+        return (
+          <header className="fixed top-0 left-0 w-full z-50 py-4 px-4 flex justify-center">
+            <div 
+              className={`w-full max-w-5xl rounded-full transition-all duration-300 flex justify-between items-center px-6 py-3 ${
+                isScrolled || !isHome
+                  ? 'bg-ud-white/90 backdrop-blur-md shadow-lg border border-ud-border' 
+                  : 'bg-transparent'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                {!isHome && (
+                  <button 
+                    onClick={(e) => handleNavClick('home', e)}
+                    className="p-1.5 rounded-full bg-ud-bg hover:bg-ud-blue hover:text-white transition-colors border border-ud-border text-ud-heading"
+                  >
+                    <ArrowLeft size={20} />
+                  </button>
+                )}
+                <a href="#" onClick={(e) => handleNavClick('home', e)} className="flex flex-col group">
+                  <span className="text-lg font-bold text-ud-heading font-sans tracking-tight group-hover:text-ud-blue transition-colors">
+                    {SITE_CONFIG.enName}
+                  </span>
+                </a>
+              </div>
+
+              <nav className="hidden md:flex space-x-2">
+                <button onClick={(e) => handleNavClick('home', e)} className={`px-5 py-2 text-sm font-bold rounded-full transition-all duration-300 font-sans ${currentPage === 'home' ? 'text-ud-blue bg-ud-blue-light' : 'text-ud-text hover:text-ud-blue hover:bg-ud-blue-light'}`}>
+                  Home
+                </button>
+                <button onClick={(e) => handleNavClick('resources', e)} className={`px-5 py-2 text-sm font-bold rounded-full transition-all duration-300 font-sans ${currentPage === 'resources' ? 'text-ud-blue bg-ud-blue-light' : 'text-ud-text hover:text-ud-blue hover:bg-ud-blue-light'}`}>
+                  Resources
+                </button>
+              </nav>
+
+              <button 
+                className="md:hidden text-ud-heading p-2 rounded-full hover:bg-ud-border/50 transition-colors"
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+              >
+                {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              </button>
+            </div>
+
+            {isMenuOpen && (
+              <div className="md:hidden fixed inset-0 top-20 z-40 px-4">
+                <div className="bg-ud-white rounded-3xl shadow-xl p-6 flex flex-col space-y-4 border border-ud-border animate-fade-up">
+                   <button 
+                      onClick={(e) => handleNavClick('home', e)} 
+                      className={`text-lg font-bold px-4 py-3 rounded-xl transition-colors font-sans text-left ${currentPage === 'home' ? 'bg-ud-blue-light text-ud-blue' : 'text-ud-heading hover:bg-ud-bg'}`}
+                    >
+                      Home
+                    </button>
+                    <button 
+                      onClick={(e) => handleNavClick('resources', e)} 
+                      className={`text-lg font-bold px-4 py-3 rounded-xl transition-colors font-sans text-left ${currentPage === 'resources' ? 'bg-ud-blue-light text-ud-blue' : 'text-ud-heading hover:bg-ud-bg'}`}
+                    >
+                      Resources
+                    </button>
+                </div>
+              </div>
+            )}
+          </header>
+        );
+      };
+
+      // 2. Draggable Card (for Hero)
+      const DraggableCard = ({ type, initialPos, zIndex, onGrab }) => {
+        const [pos, setPos] = useState({ x: 0, y: 0 });
+        const [isDragging, setIsDragging] = useState(false);
+        const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+        const cardRef = useRef(null);
+
+        const handleMouseDown = (e) => {
+          setIsDragging(true);
+          onGrab();
+
+          const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+          const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+
+          setDragStart({
+            x: clientX - pos.x,
+            y: clientY - pos.y
+          });
+        };
+
+        useEffect(() => {
+          const handleMouseMove = (e) => {
+            if (!isDragging) return;
+            
+            const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+            const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+
+            setPos({
+              x: clientX - dragStart.x,
+              y: clientY - dragStart.y
+            });
+          };
+
+          const handleMouseUp = () => {
+            setIsDragging(false);
+          };
+
+          if (isDragging) {
+            window.addEventListener('mousemove', handleMouseMove);
+            window.addEventListener('mouseup', handleMouseUp);
+            window.addEventListener('touchmove', handleMouseMove);
+            window.addEventListener('touchend', handleMouseUp);
+          }
+
+          return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+            window.removeEventListener('touchmove', handleMouseMove);
+            window.removeEventListener('touchend', handleMouseUp);
+          };
+        }, [isDragging, dragStart]);
+
+        const baseStyle = "absolute w-48 h-72 md:w-56 md:h-80 rounded-2xl shadow-xl transition-shadow duration-200 cursor-grab active:cursor-grabbing select-none flex flex-col justify-center items-center p-4 border border-ud-border";
+        const transformStyle = {
+          transform: `translate(${initialPos.x + pos.x}px, ${initialPos.y + pos.y}px) rotate(${initialPos.r + (isDragging ? 0 : 0)}deg) scale(${isDragging ? 1.05 : 1})`,
+          zIndex: isDragging ? 100 : zIndex,
+          touchAction: 'none'
+        };
+
+        if (type === 'question') {
+          return (
+            <div 
+              ref={cardRef}
+              className={`${baseStyle} bg-ud-blue`}
+              style={transformStyle}
+              onMouseDown={handleMouseDown}
+              onTouchStart={handleMouseDown}
+            >
+              <div className="w-full h-full rounded-xl border-4 border-white flex items-center justify-center relative overflow-hidden bg-ud-blue">
+                  <div className="absolute inset-0 opacity-10" 
+                       style={{backgroundImage: 'radial-gradient(#fff 2px, transparent 2px)', backgroundSize: '10px 10px'}}>
+                  </div>
+                  <span className="text-8xl font-bold text-white drop-shadow-md">?</span>
+              </div>
+            </div>
+          );
+        }
+
+        const isRed = type === 'heart';
+        const SuitIcon = isRed ? Heart : Club;
+        const colorClass = isRed ? 'text-red-500' : 'text-slate-800';
+
+        return (
+          <div 
+            ref={cardRef}
+            className={`${baseStyle} bg-white`}
+            style={transformStyle}
+            onMouseDown={handleMouseDown}
+            onTouchStart={handleMouseDown}
+          >
+            <div className={`flex justify-center items-center ${colorClass}`}>
+              <SuitIcon size={120} fill="currentColor" />
+            </div>
+          </div>
+        );
+      };
+
+      // 3. Hero
+      const Hero = () => {
+        const [zIndices, setZIndices] = useState({ heart: 1, club: 2, question: 3 });
+
+        const bringToFront = (card) => {
+          const maxZ = Math.max(...Object.values(zIndices));
+          setZIndices(prev => ({ ...prev, [card]: maxZ + 1 }));
+        };
+
+        return (
+          <section className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-ud-bg pt-24 pb-12">
+            <div className="absolute inset-0 pointer-events-none opacity-40">
+               <div className="absolute top-[-10%] right-[-5%] w-[60vw] h-[60vw] bg-ud-blue/5 rounded-full blur-[100px]" />
+               <div className="absolute bottom-[-10%] left-[-5%] w-[60vw] h-[60vw] bg-ud-orange/5 rounded-full blur-[100px]" />
+            </div>
+
+            <div className="container mx-auto px-6 md:px-12 relative z-10">
+              <div className="flex flex-col lg:flex-row items-center lg:items-center justify-between gap-12 lg:gap-0">
+                
+                <div className="flex-1 text-center lg:text-left order-2 lg:order-1 pointer-events-none select-none z-0">
+                  <div className="inline-block px-4 py-2 bg-white border border-ud-border rounded-full shadow-sm mb-8 animate-fade-in-up">
+                     <span className="text-sm font-bold text-ud-text tracking-widest uppercase">
+                       Academic Portfolio
+                     </span>
+                  </div>
+
+                  <div className="relative mb-6 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+                    <h1 className="font-sans font-black text-ud-heading leading-[0.9] tracking-tighter drop-shadow-sm">
+                      <span className="block text-[5rem] md:text-[7rem] lg:text-[9rem]">
+                        Shota
+                      </span>
+                      <span className="block text-[5rem] md:text-[7rem] lg:text-[9rem] text-ud-heading">
+                        Ikeda
+                      </span>
+                    </h1>
+                  </div>
+
+                  <div className="animate-fade-in-up space-y-2" style={{ animationDelay: '0.2s' }}>
+                      <p className="text-2xl md:text-3xl font-bold text-ud-text/80 font-sans">
+                         池田 昇太
+                      </p>
+                      <div className="flex flex-col lg:flex-row items-center lg:items-start gap-2 text-lg font-medium text-ud-text/60">
+                         <span>Ibaraki University</span>
+                         <span className="hidden lg:block"></span>
+                         <span>Shinagawa Lab / Yoneyama Lab</span>
+                      </div>
+                  </div>
+
+                  <div className="mt-8 text-lg text-ud-text font-medium leading-relaxed max-w-lg mx-auto lg:mx-0 animate-fade-in-up pointer-events-auto" style={{ animationDelay: '0.3s' }}>
+                     <p className="mb-4">
+                        Exploring the hidden logic of <span className="font-bold text-ud-heading bg-white px-1 rounded">Card-based Cryptography</span>.
+                     </p>
+                  </div>
+                  
+                  <div className="mt-8 pointer-events-auto animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+                     <p className="text-sm text-ud-text/50 font-bold uppercase tracking-widest mb-2">Try dragging the cards →</p>
+                  </div>
+                </div>
+
+                <div className="flex-1 w-full h-[400px] lg:h-[600px] flex items-center justify-center relative order-1 lg:order-2">
+                  <div className="relative w-64 h-64 lg:w-80 lg:h-80">
+                      <DraggableCard 
+                        type="club" 
+                        initialPos={{ x: -60, y: 20, r: -15 }} 
+                        zIndex={zIndices.club}
+                        onGrab={() => bringToFront('club')}
+                      />
+                      <DraggableCard 
+                        type="heart" 
+                        initialPos={{ x: 60, y: 40, r: 15 }} 
+                        zIndex={zIndices.heart}
+                        onGrab={() => bringToFront('heart')}
+                      />
+                      <DraggableCard 
+                        type="question" 
+                        initialPos={{ x: 0, y: -40, r: 0 }} 
+                        zIndex={zIndices.question}
+                        onGrab={() => bringToFront('question')}
+                      />
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </section>
+        );
+      };
+
+      // 4. About
+      const About = () => {
+        return (
+          <section id="about" className="py-20 md:py-32 bg-white rounded-[40px] mx-4 md:mx-8 shadow-sm my-8">
+            <div className="max-w-6xl mx-auto px-6 md:px-12">
+              <div className="flex flex-col md:flex-row items-center md:items-start gap-12 md:gap-20">
+                
+                <div className="shrink-0 relative group">
+                   <div className="absolute inset-0 bg-ud-blue/20 rounded-[30px] rotate-6 transform transition-transform group-hover:rotate-3"></div>
+                   <div className="relative w-64 h-64 md:w-80 md:h-80 bg-ud-bg rounded-[30px] overflow-hidden border-4 border-white shadow-lg">
+                      <img 
+                        src={SITE_CONFIG.profileImage} 
+                        alt={SITE_CONFIG.enName}
+                        className="w-full h-full object-cover"
+                      />
+                   </div>
+                </div>
+
+                <div className="flex-1 text-center md:text-left">
+                  <h2 className="text-3xl md:text-4xl font-bold text-ud-heading mb-6 font-sans">
+                    About Me
+                  </h2>
+                  
+                  <div className="space-y-6 text-ud-text font-medium leading-loose font-sans text-base md:text-lg text-justify break-words tracking-wide">
+                    {SITE_CONFIG.fullBio.split('\n\n').map((paragraph, idx) => (
+                      <p key={idx} className="block whitespace-pre-line">{paragraph}</p>
+                    ))}
+                  </div>
+
+                  <div className="mt-10 flex flex-wrap gap-4 justify-center md:justify-start">
+                     <div className="px-6 py-3 bg-ud-blue-light text-ud-blue font-bold rounded-2xl text-sm border border-ud-blue/10">
+                        Card-based Crypto
+                     </div>
+                     <div className="px-6 py-3 bg-ud-orange-light text-ud-orange font-bold rounded-2xl text-sm border border-ud-orange/10">
+                        Security
+                     </div>
+                     <div className="px-6 py-3 bg-ud-green-light text-ud-green font-bold rounded-2xl text-sm border border-ud-green/10">
+                        Mathematics
+                     </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </section>
+        );
+      };
+
+      // 5. Research
+      const Research = ({ onNavigate }) => {
+        return (
+          <section className="py-20 md:py-32 bg-ud-bg relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-ud-blue/5 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
+            
+            <div className="max-w-5xl mx-auto px-6 relative z-10">
+              
+              <div className="bg-white rounded-[40px] p-8 md:p-16 shadow-lg border border-ud-border text-center overflow-hidden relative group">
+                 
+                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none flex flex-wrap gap-12 justify-center items-center rotate-12 scale-150">
+                    <Spade size={100} /> <Heart size={100} /> <Club size={100} />
+                    <Spade size={100} /> <Heart size={100} /> <Club size={100} />
+                 </div>
+
+                 <div className="relative z-10">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-ud-orange-light text-ud-orange rounded-full text-xs font-bold uppercase tracking-wider mb-6">
+                       <BookOpen size={14} />
+                       For Researchers & Students
+                    </div>
+                    
+                    <h2 className="text-3xl md:text-5xl font-black text-ud-heading mb-6 font-sans tracking-tight leading-tight">
+                      カードベース暗号の世界へ<br className="hidden md:inline" />ようこそ
+                    </h2>
+                    
+                    <div className="max-w-2xl mx-auto mb-10">
+                      <p className="text-lg md:text-xl text-ud-text font-medium leading-loose text-justify break-words">
+                         カードベース暗号に関する有用な資料や、Webサイトをまとめました。<br className="hidden md:inline" />
+                      </p>
+                    </div>
+
+                    <button 
+                      onClick={() => onNavigate('resources')}
+                      className="group inline-flex items-center gap-3 bg-ud-heading text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-ud-blue transition-all duration-300 shadow-md hover:shadow-xl hover:-translate-y-1"
+                    >
+                       資料・Webサイトを見る
+                       <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                    </button>
+                 </div>
+              </div>
+
+            </div>
+          </section>
+        );
+      };
+
+      // 6. Publications
+      const Publications = () => {
+        const [selectedCategory, setSelectedCategory] = useState('All');
+        const [selectedYear, setSelectedYear] = useState('All');
+
+        const categories = [
+          'All',
+          '国内シンポジウム・研究会',
+          '査読付き国際会議プロシーディング'
+        ];
+
+        const years = ['All', ...Array.from(new Set(PUBLICATIONS.map(p => p.year))).sort((a, b) => b - a).map(String)];
+
+        const filteredPublications = PUBLICATIONS.filter(pub => {
+          const categoryMatch = selectedCategory === 'All' || pub.category === selectedCategory;
+          const yearMatch = selectedYear === 'All' || pub.year.toString() === selectedYear;
+          return categoryMatch && yearMatch;
+        }).sort((a, b) => {
+          const numA = parseInt(a.id.replace(/\D/g, '') || '0');
+          const numB = parseInt(b.id.replace(/\D/g, '') || '0');
+          return numB - numA;
+        });
+
+        const getCategoryColor = (category) => {
+          switch (category) {
+            case '査読付き国際会議プロシーディング':
+              return 'bg-ud-blue-light text-ud-blue border-ud-blue/20';
+            case '学術論文誌':
+              return 'bg-ud-orange-light text-ud-orange border-ud-orange/20';
+            case '国内シンポジウム・研究会':
+              return 'bg-ud-green-light text-ud-green border-ud-green/20';
+            default:
+              return 'bg-gray-100 text-gray-600 border-gray-200';
+          }
+        };
+
+        return (
+          <section id="publications" className="py-20 md:py-32 bg-white rounded-[40px] mx-4 md:mx-8 shadow-sm my-8">
+            <div className="max-w-4xl mx-auto px-6">
+              
+              <div className="mb-24">
+                <div className="flex items-center gap-3 mb-8">
+                  <div className="p-3 bg-ud-blue-light rounded-xl text-ud-blue">
+                     <FileText size={24} />
+                  </div>
+                  <h2 className="text-3xl font-bold text-ud-heading font-sans">Publications</h2>
+                </div>
+
+                <div className="bg-ud-bg p-6 rounded-3xl border border-ud-border mb-10">
+                   <div className="flex items-center gap-2 mb-4 text-ud-heading font-bold">
+                     <Filter size={18} />
+                     <span>Filters</span>
+                   </div>
+                   
+                   <div className="flex flex-col md:flex-row gap-6">
+                      <div className="flex-1">
+                         <label className="block text-xs font-bold text-ud-text/70 uppercase tracking-wider mb-2">Category</label>
+                         <div className="flex flex-wrap gap-2">
+                            {categories.map(cat => (
+                               <button
+                                 key={cat}
+                                 onClick={() => setSelectedCategory(cat)}
+                                 className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border ${
+                                   selectedCategory === cat 
+                                     ? 'bg-ud-heading text-white border-ud-heading shadow-md' 
+                                     : 'bg-white text-ud-text border-ud-border hover:bg-ud-blue-light hover:text-ud-blue hover:border-ud-blue/30'
+                                 }`}
+                               >
+                                 {cat === 'All' ? 'All Categories' : cat}
+                               </button>
+                            ))}
+                         </div>
+                      </div>
+                      
+                      <div className="shrink-0">
+                         <label className="block text-xs font-bold text-ud-text/70 uppercase tracking-wider mb-2">Year</label>
+                         <div className="flex flex-wrap gap-2">
+                            {years.map(year => (
+                               <button
+                                 key={year}
+                                 onClick={() => setSelectedYear(year)}
+                                 className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border ${
+                                   selectedYear === year
+                                     ? 'bg-ud-heading text-white border-ud-heading shadow-md' 
+                                     : 'bg-white text-ud-text border-ud-border hover:bg-ud-blue-light hover:text-ud-blue hover:border-ud-blue/30'
+                                 }`}
+                               >
+                                 {year}
+                               </button>
+                            ))}
+                         </div>
+                      </div>
+                   </div>
+                </div>
+
+                <div className="space-y-6">
+                  {filteredPublications.length > 0 ? (
+                    filteredPublications.map((pub) => (
+                      <div key={pub.id} className="group relative p-6 rounded-3xl border border-ud-border bg-white hover:shadow-lg hover:border-ud-blue/30 transition-all duration-300 animate-fade-in-up">
+                        <div className="flex flex-col md:flex-row gap-4">
+                          <div className="shrink-0">
+                            <div className="px-4 py-2 bg-ud-heading text-white text-sm font-bold rounded-xl text-center shadow-sm">
+                               {pub.year}
+                            </div>
+                          </div>
+
+                          <div className="flex-1">
+                            <div className="mb-3">
+                              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${getCategoryColor(pub.category)}`}>
+                                <Tag size={12} />
+                                {pub.category}
+                              </span>
+                            </div>
+
+                            <h3 className="text-lg md:text-xl font-bold text-ud-heading mb-3 leading-snug group-hover:text-ud-blue transition-colors">
+                              {pub.title}
+                            </h3>
+                            
+                            <p className="text-sm md:text-base text-ud-text mb-3 leading-relaxed">
+                              {pub.authors.map((author, i) => (
+                                <span key={i} className={author.includes("Ikeda") || author.includes("池田") ? "font-bold text-ud-heading underline decoration-ud-blue/30 decoration-2 underline-offset-2" : ""}>
+                                  {author}{i < pub.authors.length - 1 ? ', ' : ''}
+                                </span>
+                              ))}
+                            </p>
+                            
+                            <div className="flex items-center gap-2 text-sm font-bold text-ud-text/60">
+                              <span className="w-2 h-2 rounded-full bg-ud-orange inline-block"></span>
+                              {pub.conference}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-12 bg-ud-bg rounded-3xl border border-dashed border-ud-border">
+                      <p className="text-ud-text font-bold">No publications found matching these filters.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div id="experience">
+                 <div className="flex items-center gap-3 mb-10">
+                    <div className="p-3 bg-ud-orange-light rounded-xl text-ud-orange">
+                       <GraduationCap size={24} />
+                    </div>
+                    <h2 className="text-3xl font-bold text-ud-heading font-sans">Biography</h2>
+                 </div>
+
+                 <div className="space-y-8 pl-4 border-l-2 border-ud-border ml-3">
+                  {EXPERIENCES.map((exp) => (
+                     <div key={exp.id} className="relative pl-8">
+                        <span className="absolute -left-[9px] top-6 w-4 h-4 bg-white border-4 border-ud-orange rounded-full shadow-sm"></span>
+                        
+                        <div className="bg-ud-bg p-6 rounded-2xl border border-ud-border hover:bg-white transition-colors">
+                           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2">
+                              <span className="font-bold text-ud-heading text-lg">{exp.role}</span>
+                              <div className="flex items-center gap-1 text-xs font-bold text-ud-orange bg-ud-orange-light px-3 py-1 rounded-full mt-2 sm:mt-0 w-fit">
+                                 <Calendar size={12} />
+                                 {exp.period}
+                              </div>
+                           </div>
+                           <p className="text-base font-bold text-ud-text/80">{exp.organization}</p>
+                           <p className="text-sm text-ud-text mt-3 leading-relaxed">{exp.description}</p>
+                        </div>
+                     </div>
+                  ))}
+                 </div>
+              </div>
+
+            </div>
+          </section>
+        );
+      };
+
+      // 7. Guide
+      const Guide = ({ onNavigate }) => {
+        return (
+          <div className="pt-24 pb-20 bg-ud-bg min-h-screen animate-fade-in-up">
+            <div className="max-w-5xl mx-auto px-6">
+              
+              <div className="text-center mb-16">
+                <div className="inline-block px-4 py-1 bg-ud-blue-light text-ud-blue rounded-full font-bold text-sm mb-4">
+                   Resources
+                </div>
+                <h1 className="text-3xl md:text-5xl font-black text-ud-heading mb-6 font-sans tracking-tight leading-tight">
+                  カードベース暗号に関する<br />有用な資料・Webサイト
+                </h1>
+                <p className="text-ud-text font-bold text-lg">研究に役立つ論文リストや解説スライド、Webアプリのまとめ</p>
+              </div>
+
+              <div className="max-w-3xl mx-auto mb-20">
+                 <div className="bg-white p-10 md:p-12 rounded-3xl border border-ud-border shadow-md mb-10 relative overflow-hidden group hover:shadow-lg transition-shadow duration-300">
+                   <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-ud-blue via-ud-green to-ud-orange"></div>
+                   
+                   <div className="absolute -top-10 -right-10 w-32 h-32 bg-ud-blue/5 rounded-full blur-2xl group-hover:bg-ud-blue/10 transition-colors"></div>
+                   <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-ud-orange/5 rounded-full blur-2xl group-hover:bg-ud-orange/10 transition-colors"></div>
+
+                   <h3 className="text-xl md:text-2xl font-bold text-ud-heading mb-8 text-center font-sans tracking-tight">
+                     カードベース暗号とは？
+                   </h3>
+                   
+                   <div className="relative z-10">
+                     <p className="text-lg md:text-xl text-ud-text leading-loose font-bold text-center whitespace-pre-line">
+      {`カードベース暗号とは、カードやコインなどの物理的な道具を用いて、
+      秘密計算やゼロ知識証明を実現する技術や研究分野の総称です。`}
+                     </p>
+                   </div>
+                 </div>
+                 
+                 <div className="text-ud-text leading-loose font-medium text-justify break-words tracking-wide text-lg whitespace-pre-line px-4">
+      {`1990年代に分野が確立されてから数多くの研究がされてきました。
+      カードベース暗号の最大の特徴は、カードやコインなどを
+      実際に動かしてプロトコルを実行するため、その仕組みが分かりやすい点です。
+
+      これにより、中高生のような非専門家でも、
+      その奥深い仕組みを直感的に理解することができます。`}
+                 </div>
+              </div>
+
+              <div className="mb-24">
+                 <h2 className="text-2xl font-bold text-ud-heading text-center mb-10">資料・Webサイト一覧</h2>
+                 
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    <div className="bg-white rounded-3xl p-8 shadow-sm border border-ud-border hover:shadow-lg hover:border-ud-blue/30 transition-all duration-300 flex flex-col">
+                       <div className="flex items-center gap-3 mb-4">
+                          <div className="p-3 bg-ud-blue-light text-ud-blue rounded-xl">
+                             <FileText size={24} />
+                          </div>
+                          <h3 className="text-lg font-bold text-ud-heading">東北大学 水木先生 解説論文</h3>
+                       </div>
+                       <p className="text-sm text-ud-text mb-6 leading-loose text-justify break-words flex-1 whitespace-pre-line">
+      {`カードベース暗号のメインストリームである
+      秘密計算プロトコルに関する研究を中心に解説しています。`}
+                       </p>
+                       <a 
+                         href="https://www.jstage.jst.go.jp/article/essfr/9/3/9_179/_pdf" 
+                         target="_blank" 
+                         rel="noopener noreferrer"
+                         className="inline-flex items-center gap-2 text-ud-blue font-bold hover:text-ud-heading transition-colors text-sm"
+                       >
+                          論文を読む (PDF) <ExternalLink size={14} />
+                       </a>
+                    </div>
+
+                    <div className="bg-white rounded-3xl p-8 shadow-sm border border-ud-border hover:shadow-lg hover:border-ud-blue/30 transition-all duration-300 flex flex-col">
+                       <div className="flex items-center gap-3 mb-4">
+                          <div className="p-3 bg-ud-orange-light text-ud-orange rounded-xl">
+                             <Layers size={24} />
+                          </div>
+                          <h3 className="text-lg font-bold text-ud-heading">東邦大学 セミナー資料</h3>
+                       </div>
+                       <p className="text-sm text-ud-text mb-6 leading-loose text-justify break-words flex-1 whitespace-pre-line">
+      {`2024年に行われた可換代数と組合せ論セミナーの資料です。
+      図解が多く非常に分かりやすいのが特徴で、
+      コミット型ANDプロトコルや数独に対するゼロ知識証明、
+      その他のカードベース暗号研究について学べます。`}
+                       </p>
+                       <a 
+                         href="https://www.lab2.toho-u.ac.jp/sci/is/tsuchiya/CACoSeminar/slide/Shinagawa_talk.pdf" 
+                         target="_blank" 
+                         rel="noopener noreferrer"
+                         className="inline-flex items-center gap-2 text-ud-orange font-bold hover:text-ud-heading transition-colors text-sm"
+                       >
+                          資料を見る (PDF) <ExternalLink size={14} />
+                       </a>
+                    </div>
+
+                    <div className="bg-white rounded-3xl p-8 shadow-sm border border-ud-border hover:shadow-lg hover:border-ud-blue/30 transition-all duration-300 flex flex-col">
+                       <div className="flex items-center gap-3 mb-4">
+                          <div className="p-3 bg-ud-green-light text-ud-green rounded-xl">
+                             <Zap size={24} />
+                          </div>
+                          <h3 className="text-lg font-bold text-ud-heading">暗号・パズル・ゲーム研究室</h3>
+                       </div>
+                       <p className="text-sm text-ud-text mb-6 leading-loose text-justify break-words flex-1 whitespace-pre-line">
+      {`筑波大学 品川研究室のWebサイトでは、
+      "Five-card trick" や "Six-card trick" などの
+      プロトコルをブラウザ上で動かして体験することができます。`}
+                       </p>
+                       <a 
+                         href="https://www.cs.tsukuba.ac.jp/~shinagawa/garalley.html" 
+                         target="_blank" 
+                         rel="noopener noreferrer"
+                         className="inline-flex items-center gap-2 text-ud-green font-bold hover:text-ud-heading transition-colors text-sm"
+                       >
+                          Webで体験する <ExternalLink size={14} />
+                       </a>
+                    </div>
+
+                    <div className="bg-white rounded-3xl p-8 shadow-sm border border-ud-border hover:shadow-lg hover:border-ud-blue/30 transition-all duration-300 flex flex-col">
+                       <div className="flex items-center gap-3 mb-4">
+                          <div className="p-3 bg-gray-100 text-gray-600 rounded-xl">
+                             <Globe size={24} />
+                          </div>
+                          <h3 className="text-lg font-bold text-ud-heading">S. Ruangwises's List</h3>
+                       </div>
+                       <p className="text-sm text-ud-text mb-6 leading-loose text-justify break-words flex-1 whitespace-pre-line">
+      {`Suthee RuangwisesさんのWebサイトです。
+      カードベース暗号の論文リストや
+      NP完全性が示されたペンシルパズルがまとまっています。`}
+                       </p>
+                       <a 
+                         href="https://www.suthee.info/cbc-papers" 
+                         target="_blank" 
+                         rel="noopener noreferrer"
+                         className="inline-flex items-center gap-2 text-gray-600 font-bold hover:text-ud-heading transition-colors text-sm"
+                       >
+                          サイトを見る <ExternalLink size={14} />
+                       </a>
+                    </div>
+
+                    <div className="bg-white rounded-3xl p-8 shadow-sm border border-ud-border hover:shadow-lg hover:border-ud-blue/30 transition-all duration-300 flex flex-col md:col-span-2">
+                       <div className="flex items-center gap-3 mb-4">
+                          <div className="p-3 bg-gray-100 text-gray-600 rounded-xl">
+                             <Globe size={24} />
+                          </div>
+                          <h3 className="text-lg font-bold text-ud-heading">Card-Based Cryptography Portal</h3>
+                       </div>
+                       <p className="text-sm text-ud-text mb-6 leading-loose text-justify break-words flex-1 whitespace-pre-line">
+                          カードベース暗号に関する論文リストや
+                          ゼロ知識プロトコルのリストがまとまっているサイトです。
+                       </p>
+                       <a 
+                         href="https://sites.google.com/view/cardcrypto/list-of-papers" 
+                         target="_blank" 
+                         rel="noopener noreferrer"
+                         className="inline-flex items-center gap-2 text-gray-600 font-bold hover:text-ud-heading transition-colors text-sm"
+                       >
+                          サイトを見る <ExternalLink size={14} />
+                       </a>
+                    </div>
+
+                    <div className="bg-white rounded-3xl p-8 shadow-sm border border-ud-border hover:shadow-lg hover:border-ud-blue/30 transition-all duration-300 flex flex-col md:col-span-2">
+                       <div className="flex items-center gap-3 mb-4">
+                          <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+                             <BookOpen size={24} />
+                          </div>
+                          <h3 className="text-lg font-bold text-ud-heading">九州大学IMI 共同利用研究</h3>
+                       </div>
+                       <p className="text-sm text-ud-text mb-6 leading-loose text-justify break-words flex-1 whitespace-pre-line">
+      {`九州大学マス・フォア・インダストリ研究所(IMI)で開催されている、カードベース暗号に関する研究集会の情報です。
+      毎年、最新の研究成果が発表され、活発な議論が行われています。`}
+                       </p>
+                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <a 
+                            href="https://joint.imi.kyushu-u.ac.jp/post-18086/" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gray-50 border border-ud-border text-ud-text font-bold hover:bg-ud-blue hover:text-white hover:border-ud-blue transition-colors text-sm"
+                          >
+                             2025年度 <ExternalLink size={14} />
+                          </a>
+                          <a 
+                            href="https://joint.imi.kyushu-u.ac.jp/post-15010/" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gray-50 border border-ud-border text-ud-text font-bold hover:bg-ud-blue hover:text-white hover:border-ud-blue transition-colors text-sm"
+                          >
+                             2024年度 <ExternalLink size={14} />
+                          </a>
+                          <a 
+                            href="https://joint.imi.kyushu-u.ac.jp/post-9009/" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gray-50 border border-ud-border text-ud-text font-bold hover:bg-ud-blue hover:text-white hover:border-ud-blue transition-colors text-sm"
+                          >
+                             2023年度 <ExternalLink size={14} />
+                          </a>
+                       </div>
+                    </div>
+
+                 </div>
+              </div>
+
+            </div>
+          </div>
+        );
+      };
+
+      // 8. Footer
+      const Footer = () => {
+        return (
+          <footer className="bg-ud-bg py-16 border-t border-ud-border">
+            <div className="max-w-6xl mx-auto px-6 text-center">
+              
+              <h3 className="text-2xl font-bold text-ud-heading font-sans mb-4">{SITE_CONFIG.enName}</h3>
+              
+              <p className="text-ud-text font-medium mb-8">
+                {SITE_CONFIG.department}<br/>
+                {SITE_CONFIG.university}
+              </p>
+              
+              <div className="flex justify-center gap-6 mb-12">
+                <a 
+                  href="https://sites.google.com/view/shinagawa-crypt-lab/home" 
+                  target="_blank" 
+                  rel="noreferrer" 
+                  className="px-4 py-2 rounded-full bg-white border border-ud-border text-sm font-bold text-ud-heading hover:bg-ud-blue-light hover:text-ud-blue hover:border-ud-blue transition-all"
+                >
+                  Shinagawa Lab
+                </a>
+                <a 
+                  href="https://www.yoneyama-lab.jp/" 
+                  target="_blank" 
+                  rel="noreferrer" 
+                  className="px-4 py-2 rounded-full bg-white border border-ud-border text-sm font-bold text-ud-heading hover:bg-ud-orange-light hover:text-ud-orange hover:border-ud-orange transition-all"
+                >
+                  Yoneyama Lab
+                </a>
+              </div>
+              
+              <div className="text-xs font-bold text-ud-text/40">
+                 &copy; {new Date().getFullYear()} Shota Ikeda. All Rights Reserved.
+              </div>
+            </div>
+          </footer>
+        );
+      };
+
+      // --- MAIN APP COMPONENT ---
+      const App = () => {
+        const [currentPage, setCurrentPage] = useState('home');
+
+        const navigateTo = (page) => {
+          setCurrentPage(page);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        const renderContent = () => {
+          switch (currentPage) {
+            case 'resources':
+              return <Guide onNavigate={navigateTo} />;
+            case 'home':
+            default:
+              return (
+                <React.Fragment>
+                  <Hero />
+                  <About />
+                  <Research onNavigate={navigateTo} />
+                  <Publications />
+                </React.Fragment>
+              );
+          }
+        };
+
+        return (
+          <div className="bg-ud-bg min-h-screen text-ud-text font-sans selection:bg-ud-blue selection:text-white">
+            <Header currentPage={currentPage} onNavigate={navigateTo} />
+            <main className="flex flex-col min-h-screen">
+              {renderContent()}
+            </main>
+            <Footer />
+          </div>
+        );
+      };
+
+      // --- MOUNT ---
+      const rootElement = document.getElementById('root');
+      if (!rootElement) {
+        throw new Error("Could not find root element to mount to");
+      }
+      const root = createRoot(rootElement);
+      root.render(
+        <React.StrictMode>
+          <App />
+        </React.StrictMode>
+      );
+    </script>
+</body>
+</html>
