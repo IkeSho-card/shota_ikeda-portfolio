@@ -89,9 +89,10 @@
     
     <div id="root"></div>
 
-   <script type="text/babel" data-presets="react">
-      const { useState, useEffect } = React;
-      const { createRoot } = ReactDOM;
+<script type="text/babel">
+/** @jsxRuntime classic */
+
+const { useState, useEffect } = React;
 
       // --- ICON HELPER (Bridge Lucide UMD to React) ---
       const Icon = ({ name, size = 24, className, ...props }) => {
